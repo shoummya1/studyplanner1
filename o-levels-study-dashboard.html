@@ -1,0 +1,1628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>O Levels — Study Command Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0c0f14;
+      --surface: #141a24;
+      --surface2: #1a2230;
+      --border: #2a3548;
+      --text: #e8edf5;
+      --muted: #8b9ab5;
+      --accent: #3d9cf0;
+      --accent-dim: rgba(61, 156, 240, 0.15);
+      --success: #3ecf8e;
+      --warning: #f0b429;
+      --danger: #f07178;
+      --radius: 12px;
+      --font: "DM Sans", system-ui, sans-serif;
+      --mono: "JetBrains Mono", ui-monospace, monospace;
+      --shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      background-image:
+        radial-gradient(ellipse 120% 80% at 50% -20%, rgba(61, 156, 240, 0.12), transparent),
+        radial-gradient(ellipse 60% 40% at 100% 100%, rgba(62, 207, 142, 0.06), transparent);
+    }
+
+    a { color: var(--accent); }
+
+    .app {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      min-height: 100vh;
+    }
+
+    @media (max-width: 900px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        flex-direction: row;
+        flex-wrap: wrap;
+        padding: 0.75rem 1rem;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+      .sidebar .brand { width: 100%; margin-bottom: 0.5rem; }
+      .nav { display: flex; flex-wrap: wrap; gap: 0.35rem; width: 100%; }
+      .nav button { flex: 1 1 auto; min-width: calc(50% - 0.25rem); padding: 0.5rem 0.65rem; font-size: 0.8rem; }
+      .sidebar-footer { display: none; }
+    }
+
+    .sidebar {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 1.25rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+    .brand strong { font-size: 1.05rem; letter-spacing: -0.02em; }
+    .brand span { font-size: 0.75rem; color: var(--muted); }
+
+    .nav {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .nav button {
+      font-family: inherit;
+      font-size: 0.875rem;
+      text-align: left;
+      padding: 0.6rem 0.75rem;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .nav button:hover { background: var(--surface2); color: var(--text); }
+    .nav button.active {
+      background: var(--accent-dim);
+      color: var(--accent);
+      border-color: rgba(61, 156, 240, 0.35);
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      font-size: 0.75rem;
+      color: var(--muted);
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    main {
+      padding: 1.5rem clamp(1rem, 3vw, 2.5rem);
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .panel { display: none; animation: fadeIn 0.2s ease; }
+    .panel.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+    h1 {
+      font-size: clamp(1.35rem, 3vw, 1.75rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin: 0 0 0.25rem;
+    }
+    .subhead { color: var(--muted); font-size: 0.95rem; margin: 0 0 1.5rem; }
+
+    .grid-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.1rem;
+      box-shadow: var(--shadow);
+    }
+    .stat-card .label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .stat-card .value { font-size: 1.5rem; font-weight: 700; font-variant-numeric: tabular-nums; margin-top: 0.25rem; }
+    .stat-card .hint { font-size: 0.8rem; color: var(--muted); margin-top: 0.35rem; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      margin-bottom: 1.25rem;
+      box-shadow: var(--shadow);
+    }
+    .card h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 0 0 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .card h2 .badge {
+      font-size: 0.7rem;
+      font-weight: 500;
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+      background: var(--accent-dim);
+      color: var(--accent);
+    }
+
+    label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.35rem; }
+    input[type="text"],
+    input[type="date"],
+    input[type="time"],
+    input[type="number"],
+    input[type="search"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 0.55rem 0.75rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.9rem;
+    }
+    textarea { min-height: 72px; resize: vertical; }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+
+    .row { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: flex-end; }
+    .row > * { flex: 1 1 140px; }
+    .row .btn-wrap { flex: 0 0 auto; }
+
+    button.primary, button.ghost, button.danger {
+      font-family: inherit;
+      font-size: 0.875rem;
+      padding: 0.55rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    button.primary {
+      background: var(--accent);
+      color: #0a0e14;
+      font-weight: 600;
+    }
+    button.primary:hover { filter: brightness(1.08); }
+    button.ghost {
+      background: var(--surface2);
+      color: var(--text);
+      border-color: var(--border);
+    }
+    button.ghost:hover { border-color: var(--muted); }
+    button.danger {
+      background: rgba(240, 113, 120, 0.12);
+      color: var(--danger);
+      border-color: rgba(240, 113, 120, 0.35);
+    }
+    button.danger:hover { background: rgba(240, 113, 120, 0.2); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+    th, td {
+      text-align: left;
+      padding: 0.6rem 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    th { color: var(--muted); font-weight: 500; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    tr:hover td { background: rgba(255, 255, 255, 0.02); }
+
+    .pill {
+      display: inline-block;
+      font-size: 0.75rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      background: var(--surface2);
+      color: var(--muted);
+    }
+
+    .check-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.65rem;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .check-row:last-child { border-bottom: none; }
+    .check-row input[type="checkbox"] { margin-top: 0.35rem; accent-color: var(--accent); width: 1.1rem; height: 1.1rem; }
+    .check-row.done .task-text { text-decoration: line-through; color: var(--muted); }
+
+    .timer-display {
+      font-family: var(--mono);
+      font-size: clamp(2.5rem, 6vw, 3.5rem);
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      text-align: center;
+      margin: 1rem 0;
+      color: var(--accent);
+    }
+    .timer-phase { text-align: center; font-size: 0.9rem; color: var(--muted); margin-bottom: 0.5rem; }
+    .timer-btns { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; margin-bottom: 1rem; }
+
+    .progress-wrap {
+      height: 8px;
+      background: var(--bg);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 0.35rem;
+    }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--success));
+      border-radius: 999px;
+      transition: width 0.3s ease;
+    }
+
+    .empty {
+      color: var(--muted);
+      font-size: 0.9rem;
+      padding: 1rem 0;
+      text-align: center;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      align-items: center;
+    }
+    .toolbar input[type="search"] { max-width: 220px; }
+
+    footer.page-foot {
+      margin-top: 2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .kbd {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      padding: 0.1rem 0.35rem;
+      border-radius: 4px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <strong>O Levels</strong>
+        <span>Study command center</span>
+      </div>
+      <nav class="nav" id="nav">
+        <button type="button" data-panel="overview" class="active">Overview</button>
+        <button type="button" data-panel="schedule">Weekly plan</button>
+        <button type="button" data-panel="today">Today</button>
+        <button type="button" data-panel="breaks">Breaks &amp; focus</button>
+        <button type="button" data-panel="coaching">Coaching</button>
+        <button type="button" data-panel="assessment">Assessment</button>
+        <button type="button" data-panel="targets">Targets</button>
+        <button type="button" data-panel="wellbeing">Recovery</button>
+        <button type="button" data-panel="data">Backup</button>
+      </nav>
+      <div class="sidebar-footer">
+        Data stays in this browser (local). Export regularly from Backup.
+      </div>
+    </aside>
+
+    <main>
+      <!-- Overview -->
+      <section class="panel active" id="panel-overview">
+        <h1>Overview</h1>
+        <p class="subhead">One screen for exam countdown, weekly load, and focus rules.</p>
+
+        <div class="grid-stats">
+          <div class="stat-card">
+            <div class="label">Exam date</div>
+            <input type="date" id="exam-date" aria-label="Exam date" />
+            <div class="hint" id="exam-date-hint">Set your first / main paper date.</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Days remaining</div>
+            <div class="value" id="countdown-days">—</div>
+            <div class="hint" id="countdown-sub">Until exam date</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">This week (planned)</div>
+            <div class="value" id="stat-weekly-hours">0h</div>
+            <div class="hint">From weekly plan blocks</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Coaching (upcoming)</div>
+            <div class="value" id="stat-coaching">0</div>
+            <div class="hint">Sessions ahead</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Focus protocol <span class="badge">recommended</span></h2>
+          <ul style="margin:0;padding-left:1.2rem;color:var(--muted);font-size:0.9rem;">
+            <li><strong style="color:var(--text);">Deep work:</strong> 45–50 min blocks, one subject, phone away.</li>
+            <li><strong style="color:var(--text);">Breaks:</strong> 10 min after each block; 25–30 min after three blocks.</li>
+            <li><strong style="color:var(--text);">Review:</strong> End each day with 15 min recall (no new content).</li>
+            <li><strong style="color:var(--text);">Sleep:</strong> Protect 7.5–8 h nightly — it beats extra midnight hours.</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h2>Quick subject balance</h2>
+          <p style="margin:0 0 1rem;color:var(--muted);font-size:0.9rem;">Rough hours per subject this week (from your weekly plan).</p>
+          <div id="subject-balance"></div>
+        </div>
+      </section>
+
+      <!-- Weekly plan -->
+      <section class="panel" id="panel-schedule">
+        <h1>Weekly study plan</h1>
+        <p class="subhead">Block out subjects and times. Totals feed Overview.</p>
+
+        <div class="card">
+          <h2>Add block</h2>
+          <div class="row">
+            <div>
+              <label for="sch-day">Day</label>
+              <select id="sch-day">
+                <option value="Mon">Monday</option>
+                <option value="Tue">Tuesday</option>
+                <option value="Wed">Wednesday</option>
+                <option value="Thu">Thursday</option>
+                <option value="Fri">Friday</option>
+                <option value="Sat">Saturday</option>
+                <option value="Sun">Sunday</option>
+              </select>
+            </div>
+            <div>
+              <label for="sch-start">Start</label>
+              <input type="time" id="sch-start" value="16:00" />
+            </div>
+            <div>
+              <label for="sch-end">End</label>
+              <input type="time" id="sch-end" value="17:00" />
+            </div>
+            <div>
+              <label for="sch-subject">Subject</label>
+              <input type="text" id="sch-subject" placeholder="e.g. Chemistry" />
+            </div>
+            <div>
+              <label for="sch-note">Focus (optional)</label>
+              <input type="text" id="sch-note" placeholder="Topic / chapter" />
+            </div>
+            <div class="btn-wrap">
+              <label>&nbsp;</label>
+              <button type="button" class="primary" id="sch-add">Add block</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Schedule</h2>
+          <div class="toolbar">
+            <button type="button" class="ghost" id="sch-sort">Sort by day &amp; time</button>
+            <button type="button" class="danger" id="sch-clear">Clear all</button>
+          </div>
+          <div style="overflow-x:auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Day</th>
+                  <th>Time</th>
+                  <th>Subject</th>
+                  <th>Focus</th>
+                  <th>Hours</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="sch-body"></tbody>
+            </table>
+          </div>
+          <p class="empty" id="sch-empty" style="display:none;">No blocks yet. Add your week above.</p>
+        </div>
+      </section>
+
+      <!-- Today -->
+      <section class="panel" id="panel-today">
+        <h1>Today</h1>
+        <p class="subhead">Tasks for <span id="today-date-label"></span>. Check them off as you go.</p>
+
+        <div class="card">
+          <h2>Add task</h2>
+          <div class="row">
+            <div style="flex:2 1 200px;">
+              <label for="task-text">Task</label>
+              <input type="text" id="task-text" placeholder="e.g. Finish vectors worksheet" />
+            </div>
+            <div>
+              <label for="task-subject">Subject</label>
+              <input type="text" id="task-subject" placeholder="Math" />
+            </div>
+            <div>
+              <label for="task-mins">Est. minutes</label>
+              <input type="number" id="task-mins" min="5" step="5" value="45" />
+            </div>
+            <div class="btn-wrap">
+              <label>&nbsp;</label>
+              <button type="button" class="primary" id="task-add">Add</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Today’s list</h2>
+          <div class="toolbar">
+            <button type="button" class="ghost" id="task-clear-done">Clear completed</button>
+            <button type="button" class="ghost" id="task-pull-schedule">Import from today’s schedule</button>
+          </div>
+          <div id="task-list"></div>
+          <p class="empty" id="task-empty">No tasks yet.</p>
+        </div>
+      </section>
+
+      <!-- Breaks -->
+      <section class="panel" id="panel-breaks">
+        <h1>Breaks &amp; focus timer</h1>
+        <p class="subhead">Pomodoro-style timer + break log. Align breaks with your blocks.</p>
+
+        <div class="card">
+          <h2>Timer</h2>
+          <div class="timer-phase" id="timer-phase">Ready — set minutes and start</div>
+          <div class="timer-display" id="timer-mmss">25:00</div>
+          <div class="timer-btns">
+            <button type="button" class="ghost" id="timer-preset-25">25 / 5</button>
+            <button type="button" class="ghost" id="timer-preset-45">45 / 10</button>
+            <button type="button" class="ghost" id="timer-preset-50">50 / 10</button>
+          </div>
+          <div class="row" style="max-width:400px;margin:0 auto;">
+            <div>
+              <label for="timer-focus">Focus (min)</label>
+              <input type="number" id="timer-focus" min="1" value="25" />
+            </div>
+            <div>
+              <label for="timer-break">Break (min)</label>
+              <input type="number" id="timer-break" min="1" value="5" />
+            </div>
+          </div>
+          <div class="timer-btns" style="margin-top:1rem;">
+            <button type="button" class="primary" id="timer-start">Start</button>
+            <button type="button" class="ghost" id="timer-pause" disabled>Pause</button>
+            <button type="button" class="ghost" id="timer-reset">Reset</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Break log (today)</h2>
+          <p style="margin:0 0 0.75rem;color:var(--muted);font-size:0.9rem;">Short notes on recovery: walk, water, stretch.</p>
+          <div class="row">
+            <div style="flex:2 1 220px;">
+              <label for="break-note">Note</label>
+              <input type="text" id="break-note" placeholder="10 min walk" />
+            </div>
+            <div class="btn-wrap">
+              <label>&nbsp;</label>
+              <button type="button" class="primary" id="break-add">Log break</button>
+            </div>
+          </div>
+          <ul id="break-log" style="list-style:none;padding:0;margin:1rem 0 0;"></ul>
+          <p class="empty" id="break-empty">No breaks logged today.</p>
+        </div>
+      </section>
+
+      <!-- Coaching -->
+      <section class="panel" id="panel-coaching">
+        <h1>Coaching hours</h1>
+        <p class="subhead">Tutor / centre sessions — keep timings and prep in one place.</p>
+
+        <div class="card">
+          <h2>Add session</h2>
+          <div class="row">
+            <div>
+              <label for="coach-date">Date</label>
+              <input type="date" id="coach-date" />
+            </div>
+            <div>
+              <label for="coach-start">Start</label>
+              <input type="time" id="coach-start" />
+            </div>
+            <div>
+              <label for="coach-end">End</label>
+              <input type="time" id="coach-end" />
+            </div>
+            <div>
+              <label for="coach-subject">Subject</label>
+              <input type="text" id="coach-subject" placeholder="Physics" />
+            </div>
+            <div style="flex:2 1 200px;">
+              <label for="coach-prep">Prep / homework due</label>
+              <input type="text" id="coach-prep" placeholder="Past paper Q3–5" />
+            </div>
+            <div class="btn-wrap">
+              <label>&nbsp;</label>
+              <button type="button" class="primary" id="coach-add">Add</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Upcoming &amp; past</h2>
+          <div class="toolbar">
+            <input type="search" id="coach-filter" placeholder="Filter subject…" />
+          </div>
+          <div style="overflow-x:auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Time</th>
+                  <th>Subject</th>
+                  <th>Prep</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="coach-body"></tbody>
+            </table>
+          </div>
+          <p class="empty" id="coach-empty" style="display:none;">No sessions logged.</p>
+        </div>
+      </section>
+
+      <!-- Assessment -->
+      <section class="panel" id="panel-assessment">
+        <h1>Assessment tracker</h1>
+        <p class="subhead">Past papers, mocks, class tests — score, time, and one-line diagnosis.</p>
+
+        <div class="card">
+          <h2>Add assessment</h2>
+          <div class="row">
+            <div>
+              <label for="as-date">Date</label>
+              <input type="date" id="as-date" />
+            </div>
+            <div>
+              <label for="as-type">Type</label>
+              <select id="as-type">
+                <option>Past paper</option>
+                <option>Mock exam</option>
+                <option>Class test</option>
+                <option>Timed practice</option>
+              </select>
+            </div>
+            <div>
+              <label for="as-subject">Subject</label>
+              <input type="text" id="as-subject" placeholder="English" />
+            </div>
+            <div>
+              <label for="as-score">Score %</label>
+              <input type="number" id="as-score" min="0" max="100" step="0.1" placeholder="72" />
+            </div>
+            <div>
+              <label for="as-time">Time used (min)</label>
+              <input type="number" id="as-time" min="0" placeholder="90" />
+            </div>
+            <div style="flex:2 1 240px;">
+              <label for="as-note">Reflection / mistakes</label>
+              <input type="text" id="as-note" placeholder="Lost marks on structured Q4" />
+            </div>
+            <div class="btn-wrap">
+              <label>&nbsp;</label>
+              <button type="button" class="primary" id="as-add">Add</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Records</h2>
+          <div class="toolbar">
+            <input type="search" id="as-filter" placeholder="Filter subject…" />
+          </div>
+          <div style="overflow-x:auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Subject</th>
+                  <th>Score</th>
+                  <th>Time</th>
+                  <th>Reflection</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="as-body"></tbody>
+            </table>
+          </div>
+          <p class="empty" id="as-empty" style="display:none;">No assessments yet.</p>
+        </div>
+      </section>
+
+      <!-- Targets -->
+      <section class="panel" id="panel-targets">
+        <h1>Targets &amp; milestones</h1>
+        <p class="subhead">Exam and weekly goals with progress. Adjust % as you complete work.</p>
+
+        <div class="card">
+          <h2>Add target</h2>
+          <div class="row">
+            <div style="flex:2 1 200px;">
+              <label for="tg-title">Goal</label>
+              <input type="text" id="tg-title" placeholder="Finish Chem organic unit" />
+            </div>
+            <div>
+              <label for="tg-cat">Category</label>
+              <select id="tg-cat">
+                <option>Subject mastery</option>
+                <option>Past papers</option>
+                <option>Weak topics</option>
+                <option>Exam skills</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div>
+              <label for="tg-deadline">Deadline</label>
+              <input type="date" id="tg-deadline" />
+            </div>
+            <div>
+              <label for="tg-progress">Progress %</label>
+              <input type="number" id="tg-progress" min="0" max="100" value="0" />
+            </div>
+            <div class="btn-wrap">
+              <label>&nbsp;</label>
+              <button type="button" class="primary" id="tg-add">Add</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Active targets</h2>
+          <div id="targets-list"></div>
+          <p class="empty" id="targets-empty">No targets yet.</p>
+        </div>
+      </section>
+
+      <!-- Wellbeing -->
+      <section class="panel" id="panel-wellbeing">
+        <h1>Recovery &amp; sustainability</h1>
+        <p class="subhead">Elite preparation is a season, not a sprint. Track the basics.</p>
+
+        <div class="card">
+          <h2>Weekly check-in</h2>
+          <p style="margin:0 0 1rem;color:var(--muted);font-size:0.9rem;">Rate last week 1–5 (honest, not aspirational).</p>
+          <div class="row">
+            <div>
+              <label for="wb-sleep">Sleep quality</label>
+              <input type="number" id="wb-sleep" min="1" max="5" step="1" placeholder="1-5" />
+            </div>
+            <div>
+              <label for="wb-stress">Stress level (lower is better)</label>
+              <input type="number" id="wb-stress" min="1" max="5" step="1" placeholder="1-5" />
+            </div>
+            <div>
+              <label for="wb-exercise">Movement / sport</label>
+              <input type="number" id="wb-exercise" min="1" max="5" step="1" placeholder="1-5" />
+            </div>
+            <div style="flex:2 1 220px;">
+              <label for="wb-note">Note</label>
+              <input type="text" id="wb-note" placeholder="Felt tired Thu–Fri" />
+            </div>
+            <div class="btn-wrap">
+              <label>&nbsp;</label>
+              <button type="button" class="primary" id="wb-add">Save check-in</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>History</h2>
+          <div style="overflow-x:auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Week of</th>
+                  <th>Sleep</th>
+                  <th>Stress</th>
+                  <th>Movement</th>
+                  <th>Note</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="wb-body"></tbody>
+            </table>
+          </div>
+          <p class="empty" id="wb-empty">No entries yet.</p>
+        </div>
+      </section>
+
+      <!-- Backup -->
+      <section class="panel" id="panel-data">
+        <h1>Backup &amp; restore</h1>
+        <p class="subhead">Everything is stored locally. Export before clearing browser data or switching devices.</p>
+
+        <div class="card">
+          <h2>Actions</h2>
+          <div class="toolbar">
+            <button type="button" class="primary" id="btn-export">Download JSON backup</button>
+            <label class="ghost" style="cursor:pointer;display:inline-flex;align-items:center;padding:0.55rem 1rem;border:1px solid var(--border);border-radius:8px;background:var(--surface2);">
+              Import JSON
+              <input type="file" id="import-file" accept="application/json" hidden />
+            </label>
+            <button type="button" class="danger" id="btn-reset">Reset all data</button>
+          </div>
+          <p style="margin:1rem 0 0;font-size:0.85rem;color:var(--muted);">
+            Import merges by replacing lists; exam date uses the backup value if present.
+          </p>
+        </div>
+
+        <div class="card">
+          <h2>Keyboard</h2>
+          <p style="margin:0;font-size:0.9rem;color:var(--muted);">
+            Use sidebar to jump sections. Data auto-saves as you edit.
+          </p>
+        </div>
+      </section>
+
+      <footer class="page-foot">
+        O Levels Study Command Center — single-file dashboard. Works offline after first load (fonts may cache).
+      </footer>
+    </main>
+  </div>
+
+  <script>
+(function () {
+  const STORAGE_KEY = "olevels-dashboard-v1";
+
+  const defaultState = () => ({
+    examDate: "",
+    schedule: [],
+    tasks: {},
+    breaks: {},
+    coaching: [],
+    assessments: [],
+    targets: [],
+    wellbeing: [],
+    timer: { focusMin: 25, breakMin: 5, phase: "idle", remainingSec: 25 * 60, isBreak: false }
+  });
+
+  let state = loadState();
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return defaultState();
+      const parsed = JSON.parse(raw);
+      return { ...defaultState(), ...parsed };
+    } catch {
+      return defaultState();
+    }
+  }
+
+  function persistOnly() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (_) {}
+  }
+
+  function saveState() {
+    persistOnly();
+    renderAll();
+  }
+
+  function todayKey() {
+    const d = new Date();
+    return d.toISOString().slice(0, 10);
+  }
+
+  function parseTimeToMin(t) {
+    if (!t) return 0;
+    const [h, m] = t.split(":").map(Number);
+    return h * 60 + m;
+  }
+
+  function blockHours(start, end) {
+    const a = parseTimeToMin(start);
+    const b = parseTimeToMin(end);
+    return Math.max(0, (b - a) / 60);
+  }
+
+  function fmtHours(h) {
+    if (h < 0.05) return "0h";
+    return (Math.round(h * 10) / 10) + "h";
+  }
+
+  function dayOrder(d) {
+    const order = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    return order.indexOf(d);
+  }
+
+  /* ----- Navigation ----- */
+  document.getElementById("nav").addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-panel]");
+    if (!btn) return;
+    const id = btn.getAttribute("data-panel");
+    document.querySelectorAll(".nav button").forEach((b) => b.classList.toggle("active", b === btn));
+    document.querySelectorAll(".panel").forEach((p) => p.classList.toggle("active", p.id === "panel-" + id));
+  });
+
+  /* ----- Overview ----- */
+  const examDateInput = document.getElementById("exam-date");
+  examDateInput.value = state.examDate || "";
+  examDateInput.addEventListener("change", () => {
+    state.examDate = examDateInput.value;
+    saveState();
+  });
+
+  function renderCountdown() {
+    const elDays = document.getElementById("countdown-days");
+    const sub = document.getElementById("countdown-sub");
+    if (!state.examDate) {
+      elDays.textContent = "—";
+      sub.textContent = "Set exam date above";
+      return;
+    }
+    const exam = new Date(state.examDate + "T00:00:00");
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    const diff = Math.ceil((exam - now) / 86400000);
+    if (diff < 0) {
+      elDays.textContent = "0";
+      sub.textContent = "Exam date has passed — adjust if you have another paper";
+    } else {
+      elDays.textContent = String(diff);
+      sub.textContent = diff === 1 ? "Day to go" : "Days to go";
+    }
+  }
+
+  function weeklyHoursAndBalance() {
+    let total = 0;
+    const bySub = {};
+    state.schedule.forEach((b) => {
+      const h = blockHours(b.start, b.end);
+      total += h;
+      const s = (b.subject || "General").trim() || "General";
+      bySub[s] = (bySub[s] || 0) + h;
+    });
+    return { total, bySub };
+  }
+
+  function renderOverviewStats() {
+    const { total } = weeklyHoursAndBalance();
+    document.getElementById("stat-weekly-hours").textContent = fmtHours(total);
+
+    const today = todayKey();
+    const upcoming = state.coaching.filter((c) => c.date >= today);
+    document.getElementById("stat-coaching").textContent = String(upcoming.length);
+
+    const balanceEl = document.getElementById("subject-balance");
+    const { bySub } = weeklyHoursAndBalance();
+    const entries = Object.entries(bySub).sort((a, b) => b[1] - a[1]);
+    if (!entries.length) {
+      balanceEl.innerHTML = '<p class="empty" style="padding:0;">Add weekly blocks to see balance.</p>';
+      return;
+    }
+    balanceEl.innerHTML = entries
+      .map(([sub, h]) => {
+        const pct = total > 0 ? Math.round((h / total) * 100) : 0;
+        return (
+          '<div style="margin-bottom:0.75rem;">' +
+          '<div style="display:flex;justify-content:space-between;font-size:0.85rem;margin-bottom:0.25rem;">' +
+          "<span>" +
+          escapeHtml(sub) +
+          "</span><span>" +
+          fmtHours(h) +
+          " (" +
+          pct +
+          "%)</span></div>" +
+          '<div class="progress-wrap"><div class="progress-bar" style="width:' +
+          pct +
+          '%;"></div></div></div>'
+        );
+      })
+      .join("");
+  }
+
+  function escapeHtml(s) {
+    const d = document.createElement("div");
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  /* ----- Schedule ----- */
+  function renderSchedule() {
+    const body = document.getElementById("sch-body");
+    const empty = document.getElementById("sch-empty");
+    body.innerHTML = "";
+    if (!state.schedule.length) {
+      empty.style.display = "block";
+      return;
+    }
+    empty.style.display = "none";
+    state.schedule.forEach((b, idx) => {
+      const tr = document.createElement("tr");
+      const h = blockHours(b.start, b.end);
+      tr.innerHTML =
+        "<td>" +
+        escapeHtml(b.day) +
+        "</td><td>" +
+        escapeHtml(b.start) +
+        " – " +
+        escapeHtml(b.end) +
+        "</td><td>" +
+        escapeHtml(b.subject || "—") +
+        "</td><td>" +
+        escapeHtml(b.note || "—") +
+        "</td><td>" +
+        fmtHours(h) +
+        '</td><td><button type="button" class="ghost" data-sch-del="' +
+        idx +
+        '">Remove</button></td>';
+      body.appendChild(tr);
+    });
+    body.querySelectorAll("[data-sch-del]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const i = Number(btn.getAttribute("data-sch-del"));
+        state.schedule.splice(i, 1);
+        saveState();
+      });
+    });
+  }
+
+  document.getElementById("sch-add").addEventListener("click", () => {
+    const day = document.getElementById("sch-day").value;
+    const start = document.getElementById("sch-start").value;
+    const end = document.getElementById("sch-end").value;
+    const subject = document.getElementById("sch-subject").value.trim();
+    const note = document.getElementById("sch-note").value.trim();
+    if (parseTimeToMin(end) <= parseTimeToMin(start)) {
+      alert("End time must be after start time.");
+      return;
+    }
+    state.schedule.push({ day, start, end, subject, note });
+    saveState();
+  });
+
+  document.getElementById("sch-sort").addEventListener("click", () => {
+    state.schedule.sort((a, b) => {
+      const d = dayOrder(a.day) - dayOrder(b.day);
+      if (d !== 0) return d;
+      return parseTimeToMin(a.start) - parseTimeToMin(b.start);
+    });
+    saveState();
+  });
+
+  document.getElementById("sch-clear").addEventListener("click", () => {
+    if (confirm("Remove all schedule blocks?")) {
+      state.schedule = [];
+      saveState();
+    }
+  });
+
+  /* ----- Today tasks ----- */
+  function ensureTasksDay() {
+    const k = todayKey();
+    if (!state.tasks[k]) state.tasks[k] = [];
+    return k;
+  }
+
+  function renderTasks() {
+    const k = ensureTasksDay();
+    document.getElementById("today-date-label").textContent = new Date(k + "T12:00:00").toLocaleDateString(undefined, {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric"
+    });
+    const list = document.getElementById("task-list");
+    const empty = document.getElementById("task-empty");
+    const arr = state.tasks[k] || [];
+    list.innerHTML = "";
+    if (!arr.length) {
+      empty.style.display = "block";
+      return;
+    }
+    empty.style.display = "none";
+    arr.forEach((t, idx) => {
+      const row = document.createElement("div");
+      row.className = "check-row" + (t.done ? " done" : "");
+      row.innerHTML =
+        '<input type="checkbox" data-task-toggle="' +
+        idx +
+        '" ' +
+        (t.done ? "checked" : "") +
+        ' aria-label="Done" />' +
+        '<div style="flex:1;"><div class="task-text">' +
+        escapeHtml(t.text) +
+        '</div><div style="font-size:0.8rem;color:var(--muted);">' +
+        escapeHtml(t.subject || "") +
+        (t.mins ? " · ~" + t.mins + " min" : "") +
+        "</div></div>" +
+        '<button type="button" class="ghost" data-task-del="' +
+        idx +
+        '">Delete</button>';
+      list.appendChild(row);
+    });
+    list.querySelectorAll("[data-task-toggle]").forEach((cb) => {
+      cb.addEventListener("change", () => {
+        const i = Number(cb.getAttribute("data-task-toggle"));
+        state.tasks[k][i].done = cb.checked;
+        saveState();
+      });
+    });
+    list.querySelectorAll("[data-task-del]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const i = Number(btn.getAttribute("data-task-del"));
+        state.tasks[k].splice(i, 1);
+        saveState();
+      });
+    });
+  }
+
+  document.getElementById("task-add").addEventListener("click", () => {
+    const k = ensureTasksDay();
+    const text = document.getElementById("task-text").value.trim();
+    if (!text) return;
+    const subject = document.getElementById("task-subject").value.trim();
+    const mins = Number(document.getElementById("task-mins").value) || 0;
+    state.tasks[k].push({ text, subject, mins, done: false });
+    document.getElementById("task-text").value = "";
+    saveState();
+  });
+
+  document.getElementById("task-clear-done").addEventListener("click", () => {
+    const k = ensureTasksDay();
+    state.tasks[k] = (state.tasks[k] || []).filter((t) => !t.done);
+    saveState();
+  });
+
+  document.getElementById("task-pull-schedule").addEventListener("click", () => {
+    const k = ensureTasksDay();
+    const dow = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][new Date().getDay()];
+    const map = { Sun: "Sun", Mon: "Mon", Tue: "Tue", Wed: "Wed", Thu: "Thu", Fri: "Fri", Sat: "Sat" };
+    const dayName = map[dow];
+    state.schedule
+      .filter((b) => b.day === dayName)
+      .forEach((b) => {
+        const label = (b.subject || "Study") + " (" + b.start + "–" + b.end + ")";
+        const exists = (state.tasks[k] || []).some((t) => t.text === label);
+        if (!exists) state.tasks[k].push({ text: label, subject: b.subject || "", mins: Math.round(blockHours(b.start, b.end) * 60), done: false });
+      });
+    saveState();
+  });
+
+  /* ----- Breaks ----- */
+  let timerInterval = null;
+
+  function breakKey() {
+    return todayKey();
+  }
+
+  function ensureBreaksDay() {
+    const k = breakKey();
+    if (!state.breaks[k]) state.breaks[k] = [];
+    return k;
+  }
+
+  function renderBreakLog() {
+    const k = ensureBreaksDay();
+    const ul = document.getElementById("break-log");
+    const empty = document.getElementById("break-empty");
+    const arr = state.breaks[k];
+    ul.innerHTML = "";
+    if (!arr.length) {
+      empty.style.display = "block";
+      return;
+    }
+    empty.style.display = "none";
+    arr.forEach((entry, idx) => {
+      const note = typeof entry === "string" ? entry : entry.note;
+      const timeLabel = typeof entry === "string" ? "" : (entry.time ? entry.time + " — " : "");
+      const li = document.createElement("li");
+      li.style.cssText = "padding:0.4rem 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;gap:0.5rem;align-items:center;";
+      li.innerHTML =
+        "<span>" +
+        timeLabel +
+        escapeHtml(note) +
+        '</span><button type="button" class="ghost" data-br-del="' +
+        idx +
+        '">Remove</button>';
+      ul.appendChild(li);
+    });
+    ul.querySelectorAll("[data-br-del]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const i = Number(btn.getAttribute("data-br-del"));
+        state.breaks[k].splice(i, 1);
+        saveState();
+      });
+    });
+  }
+
+  document.getElementById("break-add").addEventListener("click", () => {
+    const k = ensureBreaksDay();
+    const note = document.getElementById("break-note").value.trim() || "Break";
+    const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    state.breaks[k].push({ note, time });
+    document.getElementById("break-note").value = "";
+    saveState();
+  });
+
+  function fmtMMSS(sec) {
+    const s = Math.max(0, Math.floor(sec));
+    const m = Math.floor(s / 60);
+    const r = s % 60;
+    return String(m).padStart(2, "0") + ":" + String(r).padStart(2, "0");
+  }
+
+  function syncTimerUI() {
+    const t = state.timer;
+    document.getElementById("timer-mmss").textContent = fmtMMSS(t.remainingSec);
+    const phaseEl = document.getElementById("timer-phase");
+    if (t.phase === "idle") phaseEl.textContent = "Ready — set minutes and start";
+    else if (t.phase === "paused") phaseEl.textContent = t.isBreak ? "Break paused" : "Focus paused";
+    else phaseEl.textContent = t.isBreak ? "Break — move, water, eyes off screen" : "Focus block — single task only";
+
+    document.getElementById("timer-focus").value = t.focusMin;
+    document.getElementById("timer-break").value = t.breakMin;
+    const startBtn = document.getElementById("timer-start");
+    if (t.phase === "running") {
+      startBtn.textContent = "Running…";
+      startBtn.disabled = true;
+    } else if (t.phase === "paused") {
+      startBtn.textContent = "Resume";
+      startBtn.disabled = false;
+    } else {
+      startBtn.textContent = "Start";
+      startBtn.disabled = false;
+    }
+    document.getElementById("timer-pause").disabled = t.phase === "idle" || t.phase === "paused";
+  }
+
+  function timerTick() {
+    if (state.timer.phase !== "running") return;
+    state.timer.remainingSec -= 1;
+    if (state.timer.remainingSec <= 0) {
+      if (!state.timer.isBreak) {
+        state.timer.isBreak = true;
+        state.timer.remainingSec = state.timer.breakMin * 60;
+        try {
+          new Audio(
+            "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQQAAAAAAA=="
+          ).play();
+        } catch (_) {}
+      } else {
+        state.timer.isBreak = false;
+        state.timer.remainingSec = state.timer.focusMin * 60;
+      }
+    }
+    persistOnly();
+    syncTimerUI();
+  }
+
+  document.getElementById("timer-focus").addEventListener("input", (e) => {
+    state.timer.focusMin = Math.max(1, Number(e.target.value) || 25);
+    if (state.timer.phase === "idle" && !state.timer.isBreak) state.timer.remainingSec = state.timer.focusMin * 60;
+    saveState();
+  });
+  document.getElementById("timer-break").addEventListener("input", (e) => {
+    state.timer.breakMin = Math.max(1, Number(e.target.value) || 5);
+    saveState();
+  });
+
+  document.getElementById("timer-preset-25").addEventListener("click", () => {
+    state.timer.focusMin = 25;
+    state.timer.breakMin = 5;
+    state.timer.remainingSec = 25 * 60;
+    state.timer.isBreak = false;
+    state.timer.phase = "idle";
+    saveState();
+  });
+  document.getElementById("timer-preset-45").addEventListener("click", () => {
+    state.timer.focusMin = 45;
+    state.timer.breakMin = 10;
+    state.timer.remainingSec = 45 * 60;
+    state.timer.isBreak = false;
+    state.timer.phase = "idle";
+    saveState();
+  });
+  document.getElementById("timer-preset-50").addEventListener("click", () => {
+    state.timer.focusMin = 50;
+    state.timer.breakMin = 10;
+    state.timer.remainingSec = 50 * 60;
+    state.timer.isBreak = false;
+    state.timer.phase = "idle";
+    saveState();
+  });
+
+  document.getElementById("timer-start").addEventListener("click", () => {
+    if (state.timer.phase === "running") return;
+    if (state.timer.phase === "paused") {
+      state.timer.phase = "running";
+    } else {
+      state.timer.phase = "running";
+      if (state.timer.remainingSec <= 0) state.timer.remainingSec = (state.timer.isBreak ? state.timer.breakMin : state.timer.focusMin) * 60;
+    }
+    if (!timerInterval) timerInterval = setInterval(timerTick, 1000);
+    saveState();
+  });
+
+  document.getElementById("timer-pause").addEventListener("click", () => {
+    if (state.timer.phase === "running") {
+      state.timer.phase = "paused";
+      saveState();
+    }
+  });
+
+  document.getElementById("timer-reset").addEventListener("click", () => {
+    state.timer.phase = "idle";
+    state.timer.isBreak = false;
+    state.timer.remainingSec = state.timer.focusMin * 60;
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+    saveState();
+  });
+
+  /* ----- Coaching ----- */
+  function renderCoaching() {
+    const filter = (document.getElementById("coach-filter").value || "").toLowerCase();
+    const body = document.getElementById("coach-body");
+    const empty = document.getElementById("coach-empty");
+    const sorted = [...state.coaching].sort((a, b) => a.date.localeCompare(b.date) || a.start.localeCompare(b.start));
+    const rows = sorted.filter((c) => !filter || (c.subject || "").toLowerCase().includes(filter));
+    body.innerHTML = "";
+    if (!rows.length) {
+      empty.style.display = state.coaching.length ? "block" : "none";
+      if (!state.coaching.length) empty.style.display = "block";
+      return;
+    }
+    empty.style.display = "none";
+    rows.forEach((c) => {
+      const idx = state.coaching.indexOf(c);
+      const tr = document.createElement("tr");
+      tr.innerHTML =
+        "<td>" +
+        escapeHtml(c.date) +
+        "</td><td>" +
+        escapeHtml(c.start) +
+        " – " +
+        escapeHtml(c.end) +
+        "</td><td>" +
+        escapeHtml(c.subject || "—") +
+        "</td><td>" +
+        escapeHtml(c.prep || "—") +
+        '</td><td><button type="button" class="ghost" data-coach-del="' +
+        idx +
+        '">Remove</button></td>';
+      body.appendChild(tr);
+    });
+    body.querySelectorAll("[data-coach-del]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const i = Number(btn.getAttribute("data-coach-del"));
+        state.coaching.splice(i, 1);
+        saveState();
+      });
+    });
+  }
+
+  document.getElementById("coach-add").addEventListener("click", () => {
+    const date = document.getElementById("coach-date").value;
+    const start = document.getElementById("coach-start").value;
+    const end = document.getElementById("coach-end").value;
+    const subject = document.getElementById("coach-subject").value.trim();
+    const prep = document.getElementById("coach-prep").value.trim();
+    if (!date || !start || !end) {
+      alert("Date, start, and end are required.");
+      return;
+    }
+    if (parseTimeToMin(end) <= parseTimeToMin(start)) {
+      alert("End time must be after start.");
+      return;
+    }
+    state.coaching.push({ date, start, end, subject, prep });
+    saveState();
+  });
+
+  document.getElementById("coach-filter").addEventListener("input", renderCoaching);
+
+  /* ----- Assessments ----- */
+  function renderAssessments() {
+    const filter = (document.getElementById("as-filter").value || "").toLowerCase();
+    const body = document.getElementById("as-body");
+    const empty = document.getElementById("as-empty");
+    const sorted = [...state.assessments].sort((a, b) => b.date.localeCompare(a.date));
+    const rows = sorted.filter((a) => !filter || (a.subject || "").toLowerCase().includes(filter));
+    body.innerHTML = "";
+    if (!rows.length) {
+      empty.style.display = state.assessments.length ? "block" : "none";
+      if (!state.assessments.length) empty.style.display = "block";
+      return;
+    }
+    empty.style.display = "none";
+    rows.forEach((a) => {
+      const idx = state.assessments.indexOf(a);
+      const tr = document.createElement("tr");
+      tr.innerHTML =
+        "<td>" +
+        escapeHtml(a.date) +
+        "</td><td>" +
+        escapeHtml(a.type) +
+        "</td><td>" +
+        escapeHtml(a.subject || "—") +
+        "</td><td>" +
+        (a.score != null ? escapeHtml(String(a.score)) + "%" : "—") +
+        "</td><td>" +
+        (a.timeMins != null ? escapeHtml(String(a.timeMins)) : "—") +
+        "</td><td>" +
+        escapeHtml(a.note || "—") +
+        '</td><td><button type="button" class="ghost" data-as-del="' +
+        idx +
+        '">Remove</button></td>';
+      body.appendChild(tr);
+    });
+    body.querySelectorAll("[data-as-del]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const i = Number(btn.getAttribute("data-as-del"));
+        state.assessments.splice(i, 1);
+        saveState();
+      });
+    });
+  }
+
+  document.getElementById("as-add").addEventListener("click", () => {
+    const date = document.getElementById("as-date").value;
+    const type = document.getElementById("as-type").value;
+    const subject = document.getElementById("as-subject").value.trim();
+    const score = document.getElementById("as-score").value;
+    const timeMins = document.getElementById("as-time").value;
+    const note = document.getElementById("as-note").value.trim();
+    if (!date) {
+      alert("Date is required.");
+      return;
+    }
+    state.assessments.push({
+      date,
+      type,
+      subject,
+      score: score === "" ? null : Number(score),
+      timeMins: timeMins === "" ? null : Number(timeMins),
+      note
+    });
+    saveState();
+  });
+
+  document.getElementById("as-filter").addEventListener("input", renderAssessments);
+
+  /* ----- Targets ----- */
+  function renderTargets() {
+    const list = document.getElementById("targets-list");
+    const empty = document.getElementById("targets-empty");
+    list.innerHTML = "";
+    if (!state.targets.length) {
+      empty.style.display = "block";
+      return;
+    }
+    empty.style.display = "none";
+    state.targets.forEach((t, idx) => {
+      const div = document.createElement("div");
+      div.style.cssText =
+        "border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:0.75rem;background:var(--surface2);";
+      const pct = Math.min(100, Math.max(0, Number(t.progress) || 0));
+      div.innerHTML =
+        '<div style="display:flex;justify-content:space-between;gap:0.5rem;flex-wrap:wrap;align-items:flex-start;">' +
+        "<div><strong>" +
+        escapeHtml(t.title) +
+        '</strong><div style="font-size:0.8rem;color:var(--muted);">' +
+        escapeHtml(t.category) +
+        (t.deadline ? " · due " + escapeHtml(t.deadline) : "") +
+        "</div></div>" +
+        '<div style="display:flex;align-items:center;gap:0.5rem;"><label style="margin:0;font-size:0.75rem;">%</label>' +
+        '<input type="number" min="0" max="100" data-tg-prog="' +
+        idx +
+        '" value="' +
+        pct +
+        '" style="width:72px;" />' +
+        '<button type="button" class="ghost" data-tg-del="' +
+        idx +
+        '">Delete</button></div></div>' +
+        '<div class="progress-wrap" style="margin-top:0.6rem;"><div class="progress-bar" style="width:' +
+        pct +
+        '%;"></div></div>';
+      list.appendChild(div);
+    });
+    list.querySelectorAll("[data-tg-prog]").forEach((inp) => {
+      inp.addEventListener("change", () => {
+        const i = Number(inp.getAttribute("data-tg-prog"));
+        state.targets[i].progress = Math.min(100, Math.max(0, Number(inp.value) || 0));
+        saveState();
+      });
+    });
+    list.querySelectorAll("[data-tg-del]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const i = Number(btn.getAttribute("data-tg-del"));
+        state.targets.splice(i, 1);
+        saveState();
+      });
+    });
+  }
+
+  document.getElementById("tg-add").addEventListener("click", () => {
+    const title = document.getElementById("tg-title").value.trim();
+    if (!title) return;
+    const category = document.getElementById("tg-cat").value;
+    const deadline = document.getElementById("tg-deadline").value;
+    const progress = Number(document.getElementById("tg-progress").value) || 0;
+    state.targets.push({ title, category, deadline, progress });
+    document.getElementById("tg-title").value = "";
+    saveState();
+  });
+
+  /* ----- Wellbeing ----- */
+  function renderWellbeing() {
+    const body = document.getElementById("wb-body");
+    const empty = document.getElementById("wb-empty");
+    const sorted = [...state.wellbeing].sort((a, b) => b.weekOf.localeCompare(a.weekOf));
+    body.innerHTML = "";
+    if (!sorted.length) {
+      empty.style.display = "block";
+      return;
+    }
+    empty.style.display = "none";
+    sorted.forEach((w) => {
+      const idx = state.wellbeing.indexOf(w);
+      const tr = document.createElement("tr");
+      tr.innerHTML =
+        "<td>" +
+        escapeHtml(w.weekOf) +
+        "</td><td>" +
+        escapeHtml(String(w.sleep)) +
+        "</td><td>" +
+        escapeHtml(String(w.stress)) +
+        "</td><td>" +
+        escapeHtml(String(w.exercise)) +
+        "</td><td>" +
+        escapeHtml(w.note || "—") +
+        '</td><td><button type="button" class="ghost" data-wb-del="' +
+        idx +
+        '">Remove</button></td>';
+      body.appendChild(tr);
+    });
+    body.querySelectorAll("[data-wb-del]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const i = Number(btn.getAttribute("data-wb-del"));
+        state.wellbeing.splice(i, 1);
+        saveState();
+      });
+    });
+  }
+
+  document.getElementById("wb-add").addEventListener("click", () => {
+    const sleep = Number(document.getElementById("wb-sleep").value);
+    const stress = Number(document.getElementById("wb-stress").value);
+    const exercise = Number(document.getElementById("wb-exercise").value);
+    const note = document.getElementById("wb-note").value.trim();
+    if (!sleep || !stress || !exercise) {
+      alert("Enter sleep, stress, and movement ratings (1–5).");
+      return;
+    }
+    const monday = new Date();
+    const d = monday.getDay();
+    const diff = monday.getDate() - d + (d === 0 ? -6 : 1);
+    monday.setDate(diff);
+    const weekOf = monday.toISOString().slice(0, 10);
+    state.wellbeing = state.wellbeing.filter((x) => x.weekOf !== weekOf);
+    state.wellbeing.push({ weekOf, sleep, stress, exercise, note });
+    saveState();
+  });
+
+  /* ----- Backup ----- */
+  document.getElementById("btn-export").addEventListener("click", () => {
+    const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "olevels-dashboard-backup.json";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  document.getElementById("import-file").addEventListener("change", (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const data = JSON.parse(reader.result);
+        state = { ...defaultState(), ...data };
+        examDateInput.value = state.examDate || "";
+        saveState();
+        alert("Import complete.");
+      } catch {
+        alert("Invalid JSON file.");
+      }
+      e.target.value = "";
+    };
+    reader.readAsText(f);
+  });
+
+  document.getElementById("btn-reset").addEventListener("click", () => {
+    if (!confirm("Erase ALL dashboard data in this browser?")) return;
+    localStorage.removeItem(STORAGE_KEY);
+    state = defaultState();
+    examDateInput.value = "";
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+    saveState();
+  });
+
+  /* ----- Init dates ----- */
+  const today = todayKey();
+  document.getElementById("coach-date").value = today;
+  document.getElementById("as-date").value = today;
+
+  function renderAll() {
+    examDateInput.value = state.examDate || "";
+    renderCountdown();
+    renderOverviewStats();
+    renderSchedule();
+    renderTasks();
+    renderBreakLog();
+    syncTimerUI();
+    renderCoaching();
+    renderAssessments();
+    renderTargets();
+    renderWellbeing();
+  }
+
+  renderAll();
+
+  /* Persist timer running state across reloads */
+  if (state.timer.phase === "running") {
+    if (!timerInterval) timerInterval = setInterval(timerTick, 1000);
+  }
+})();
+  </script>
+</body>
+</html>
